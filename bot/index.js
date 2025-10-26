@@ -71,8 +71,8 @@ async function processQueue() {
   processQueue();
 }
 
-app.listen(3000, async () => {
-  console.log("🌐 Server started on port 3000");
+app.listen(8000, async () => {
+  console.log("🌐 Server started on port 8000");
   const msg = await bot.telegram.sendMessage(process.env.Owner, "🚀 MegaTG Bot started!");
   await sleepf(3000);
   try { await bot.telegram.deleteMessage(process.env.Owner, msg.message_id); } catch (_) {}
