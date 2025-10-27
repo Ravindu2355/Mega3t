@@ -37,7 +37,7 @@ bot.on("text", async (ctx) => {
     if (run === 0) {
       run = 1;
       ctx.reply("🔍 Valid Mega link detected! Starting process...");
-      queue = await extractMegaFolder(text, bot);
+      queue = await extractMegaFolder(text, bot, OWNER);
       processQueue();
     } else {
       ctx.reply("⚙️ A process is already running. Please wait!");
