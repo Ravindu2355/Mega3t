@@ -1,4 +1,4 @@
-const { File, Folder } = require("megajs");
+const { File } = require("megajs");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
@@ -118,13 +118,15 @@ async function extractMegaFolder(url, bot, owner) {
     let obj;
 
     // Detect folder or file
-    if (/\/folder\//.test(url)) {
-      obj = Folder.fromURL(url);
-    } else if (/\/file\//.test(url)) {
-      obj = File.fromURL(url);
-    } else {
+    //if (/\/folder\//.test(url)) {
+      //obj = Folder.fromURL(url);
+    //} else if (/\/file\//.test(url)) {
+    obj = File.fromURL(url);
+    //} else {
+    if(!obj){
       throw new Error("Invalid Mega link!");
     }
+    //}
 
     await obj.loadAttributes();
 
