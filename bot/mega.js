@@ -80,7 +80,7 @@ async function downloadMegaFile(megaFile, bot) {
   });
 }
 
-async function extractMegaFolder(url, bot) {
+async function OldextractMegaFolder(url, bot) {
   const folder = File.fromURL(url);
   await folder.loadAttributes();
 
@@ -106,4 +106,51 @@ async function extractMegaFolder(url, bot) {
   return files;
 }
 
+async function extractMegaFolder(url, bot) {
+  try {
+    const folder = File.fromURL(url);
+    await folder.loadAttributes();
+
+    const files = [];
+    const allFiles = [];
+
+    // Recursive traversal without JSON.stringify()
+    const traverse = (item) => {
+      if (item.children && Array.isArray(item.children)) {
+        for (const child of item.children) traverse(child);
+      } else if (!item.directory) {
+        const ext = path.extname(item.name).slice(1);
+        const type = filetypes[ext] || "document";
+        const obj = {
+          name: item.name,
+          size: item.size,
+          type,
+          link: item.link(),
+        };
+        allFiles.push(obj);
+        if (item.size <= sizelimits.M50) files.push(obj);
+      }
+    };
+
+    traverse(folder);
+
+    // Save results
+    fs.writeFileSync("files.json", JSON.stringify({ files }, null, 2));
+    fs.writeFileSync("Allfiles.json", JSON.stringify({ files: allFiles }, null, 2));
+
+    // Send summary to Telegram
+    await bot.telegram.sendDocument(owner, { source: path.join(__dirname, "../Allfiles.json") });
+    await bot.telegram.sendMessage(
+      owner,
+      `📁 Found ${allFiles.length} files.\n🟢 ${files.length} under 50 MB ready to upload.`
+    );
+
+    return files;
+  } catch (err) {
+    console.error("Folder extraction error:", err);
+    await bot.telegram.sendMessage(owner, `❌ Error reading folder:\n${err.message}`);
+    return [];
+  }
+          }
+                                               
 module.exports = { extractMegaFolder, downloadMegaFile };
