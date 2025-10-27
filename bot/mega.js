@@ -5,9 +5,9 @@ const axios = require("axios");
 const FormData = require("form-data");
 const { SizeF, pres, sleepf } = require("./utils");
 
-const BOT_TOKEN = process.env.Token;
+const BOT_TOKEN = process.env.BOT_TOKEN;
 const channel = process.env.channel;
-const owner = process.env.Owner;
+const owner = process.env.OWNER;
 
 const filetypes = {
   jpg: "image", png: "image", gif: "image", jpeg: "image", svg: "image",
