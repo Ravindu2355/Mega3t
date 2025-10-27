@@ -8,7 +8,7 @@ const { clearDir, sleepf } = require("./utils");
 const { extractMegaFolder, downloadMegaFile } = require("./mega");
 const bot = require("./tg");
 const megaC = require("mega-link-checker");
-
+const OWNER = process.env.OWNER;
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -52,12 +52,12 @@ async function processQueue() {
     stopn = 0;
     run = 0;
     clearDir(DOWNLOAD_DIR);
-    await bot.telegram.sendMessage(process.env.Owner, "🛑 Process stopped and cleaned.");
+    await bot.telegram.sendMessage(OWNER, "🛑 Process stopped and cleaned.");
     return;
   }
 
   if (queue.length === 0) {
-    await bot.telegram.sendMessage(process.env.Owner, "✅ All files uploaded!");
+    await bot.telegram.sendMessage(OWNER, "✅ All files uploaded!");
     run = 0;
     return;
   }
@@ -73,9 +73,9 @@ async function processQueue() {
 
 app.listen(8000, async () => {
   console.log("🌐 Server started on port 8000");
-  const msg = await bot.telegram.sendMessage(process.env.OWNER, "🚀 MegaTG Bot started!");
+  const msg = await bot.telegram.sendMessage(OWNER, "🚀 MegaTG Bot started!");
   await sleepf(3000);
-  try { await bot.telegram.deleteMessage(process.env.OWNER, msg.message_id); } catch (_) {}
+  //try { await bot.telegram.deleteMessage(OWNER, msg.message_id); } catch (_) {}
 });
 
 bot.launch();
