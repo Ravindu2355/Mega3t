@@ -1,6 +1,6 @@
 const { Telegraf } = require('telegraf');
 
-const bot = new Telegraf(process.env.Token);
+const bot = new Telegraf(process.env.BOT_TOKEN);
 
 bot.start((ctx) => ctx.reply('👋 Welcome! I am your personal Mega downloader bot.'));
 bot.help((ctx) => ctx.reply('Send me a Mega link or use /stop to stop the process.'));
