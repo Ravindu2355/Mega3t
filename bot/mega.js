@@ -113,7 +113,7 @@ async function OldextractMegaFolder(url, bot) {
  * @param {string} owner - Telegram user ID for messages
  * @returns {Promise<Array>} - Array of files under sizelimits.M50
  */
-async function extractMegaFolder(url, bot, owner) {
+async function extractMegaFolder2(url, bot, owner) {
   try {
     let obj;
 
@@ -174,5 +174,51 @@ async function extractMegaFolder(url, bot, owner) {
   }
 }
 
+async function extractMegaFolder(url, bot, owner) {
+  const out = [];
+  try {
+    async function traverse(node, parentPath = '') {
+      if (typeof node.loadAttributes === 'function') {
+        try { await node.loadAttributes(); } catch {}
+      }
+
+      const curPath = parentPath ? `${parentPath}/${node.name}` : node.name || '';
+
+      if (node.directory) {
+        const children = node.children || [];
+        for (let child of children) {
+          await traverse(child, curPath);
+        }
+      } else {
+        out.push({
+          id: [node.publicId || null, node.downloadId || node.nodeId || null],
+          key: node.key ? node.key.toString('base64') : null,
+          name: node.name,
+          size: node.size,
+          fullPath: curPath,
+          uploadable: node.size <= sizelimits.M50,
+          link: typeof item.link === "function" ? item.link() : null
+        });
+      }
+    }
+
+    const root = File.fromURL(url);
+    await traverse(root, '');
+
+    fs.writeFileSync("Allfiles.json", JSON.stringify(out, null, 2));
+
+    if (bot && owner) {
+      await bot.telegram.sendDocument(owner, { source: path.join(__dirname, "../Allfiles.json") });
+      await bot.telegram.sendMessage(owner, `📁 Found ${out.length} files.\n🟢 ${out.filter(f => f.uploadable).length} under 50 MB ready to upload.`);
+    }
+
+    return out.filter(f => f.uploadable);
+
+  } catch (err) {
+    console.error("Folder extraction error:", err);
+    if (bot && owner) await bot.telegram.sendMessage(owner, `❌ Error reading Mega link:\n${err.message}`);
+    return [];
+  }
+}
 
 module.exports = { extractMegaFolder, downloadMegaFile };
