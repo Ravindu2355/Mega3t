@@ -1,4 +1,4 @@
-const { File } = require("megajs");
+const { File, Folder } = require("megajs");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
@@ -106,51 +106,74 @@ async function OldextractMegaFolder(url, bot) {
   return files;
 }
 
-async function extractMegaFolder(url, bot) {
+/**
+ * Extract files from a Mega link (folder or single file)
+ * @param {string} url - Mega file or folder URL
+ * @param {Telegraf} bot - Telegraf bot instance
+ * @param {string} owner - Telegram user ID for messages
+ * @returns {Promise<Array>} - Array of files under sizelimits.M50
+ */
+async function extractMegaFolder(url, bot, owner) {
   try {
-    const folder = File.fromURL(url);
-    await folder.loadAttributes();
+    let obj;
+
+    // Detect folder or file
+    if (/\/folder\//.test(url)) {
+      obj = Folder.fromURL(url);
+    } else if (/\/file\//.test(url)) {
+      obj = File.fromURL(url);
+    } else {
+      throw new Error("Invalid Mega link!");
+    }
+
+    await obj.loadAttributes();
 
     const files = [];
     const allFiles = [];
 
-    // Recursive traversal without JSON.stringify()
+    // Recursive traversal (works for folders)
     const traverse = (item) => {
       if (item.children && Array.isArray(item.children)) {
         for (const child of item.children) traverse(child);
       } else if (!item.directory) {
         const ext = path.extname(item.name).slice(1);
         const type = filetypes[ext] || "document";
-        const obj = {
+        const fileObj = {
           name: item.name,
           size: item.size,
           type,
-          link: item.link(),
+          link: typeof item.link === "function" ? item.link() : null
         };
-        allFiles.push(obj);
-        if (item.size <= sizelimits.M50) files.push(obj);
+        allFiles.push(fileObj);
+        if (item.size <= sizelimits.M50) files.push(fileObj);
       }
     };
 
-    traverse(folder);
+    // Start traversal
+    traverse(obj);
 
     // Save results
     fs.writeFileSync("files.json", JSON.stringify({ files }, null, 2));
     fs.writeFileSync("Allfiles.json", JSON.stringify({ files: allFiles }, null, 2));
 
     // Send summary to Telegram
-    await bot.telegram.sendDocument(owner, { source: path.join(__dirname, "../Allfiles.json") });
-    await bot.telegram.sendMessage(
-      owner,
-      `📁 Found ${allFiles.length} files.\n🟢 ${files.length} under 50 MB ready to upload.`
-    );
+    if (bot && owner) {
+      await bot.telegram.sendDocument(owner, { source: path.join(__dirname, "../Allfiles.json") });
+      await bot.telegram.sendMessage(
+        owner,
+        `📁 Found ${allFiles.length} files.\n🟢 ${files.length} under 50 MB ready to upload.`
+      );
+    }
 
     return files;
+
   } catch (err) {
     console.error("Folder extraction error:", err);
-    await bot.telegram.sendMessage(owner, `❌ Error reading folder:\n${err.message}`);
+    if (bot && owner) await bot.telegram.sendMessage(owner, `❌ Error reading Mega link:\n${err.message}`);
     return [];
   }
-          }
+}
+
+module.exports = { extractMegaFolder };
                                                
 module.exports = { extractMegaFolder, downloadMegaFile };
