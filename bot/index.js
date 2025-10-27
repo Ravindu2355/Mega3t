@@ -33,7 +33,7 @@ bot.on("text", async (ctx) => {
   }
 
   const check = await megaC(text);
-  if (check.valid) {
+  if (check) {
     if (run === 0) {
       run = 1;
       ctx.reply("🔍 Valid Mega link detected! Starting process...");
