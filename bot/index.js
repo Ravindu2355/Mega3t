@@ -67,7 +67,7 @@ async function processQueue() {
   await megaFile.loadAttributes();
   megaFile.type = file.type;
   await downloadMegaFile(megaFile, bot);
-  await sleepf(Number(process.env.ts) || 1000);
+  await sleepf(Number(process.env.ts) || 1500);
   processQueue();
 }
 
