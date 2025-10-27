@@ -118,15 +118,13 @@ async function extractMegaFolder(url, bot, owner) {
     let obj;
 
     // Detect folder or file
-    //if (/\/folder\//.test(url)) {
-      //obj = Folder.fromURL(url);
-    //} else if (/\/file\//.test(url)) {
-    obj = File.fromURL(url);
-    //} else {
-    if(!obj){
+    if (/\/folder\//.test(url)) {
+      obj = Folder.fromURL(url);
+    } else if (/\/file\//.test(url)) {
+      obj = File.fromURL(url);
+    } else {
       throw new Error("Invalid Mega link!");
     }
-    //}
 
     await obj.loadAttributes();
 
@@ -176,6 +174,5 @@ async function extractMegaFolder(url, bot, owner) {
   }
 }
 
-module.exports = { extractMegaFolder };
-                                               
+
 module.exports = { extractMegaFolder, downloadMegaFile };
