@@ -197,7 +197,7 @@ async function extractMegaFolder(url, bot, owner) {
           size: node.size,
           fullPath: curPath,
           uploadable: node.size <= sizelimits.M50,
-          link: typeof item.link === "function" ? item.link() : null
+          link: typeof node.link === "function" ? node.link() : null
         });
       }
     }
